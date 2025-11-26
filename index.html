@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Financial Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 0;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 1.3rem;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #eee;
+            font-size: 0.95rem;
+        }
+        
+        .summary-item.total {
+            font-weight: bold;
+            border-bottom: 2px solid var(--primary);
+            font-size: 1rem;
+        }
+        
+        .positive {
+            color: var(--success);
+        }
+        
+        .negative {
+            color: var(--danger);
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 12px 15px;
+            flex: 1;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            min-width: 120px;
+        }
+        
+        .tab.active {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .tab:hover:not(.active) {
+            background: #f8f9fa;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .btn i {
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.95rem;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 250px;
+            margin-top: 15px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-good {
+            background-color: var(--success);
+        }
+        
+        .status-warning {
+            background-color: var(--warning);
+        }
+        
+        .status-bad {
+            background-color: var(--danger);
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .alert-success {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .data-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .data-actions .btn {
+            flex: 1;
+            min-width: 140px;
+        }
+        
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 10px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        .mobile-nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-nav-item.active {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .header-actions {
+                margin-top: 10px;
+                display: flex;
+                gap: 10px;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .tabs {
+                display: none;
+            }
+            
+            .mobile-nav {
+                display: flex;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .card h2 {
+                font-size: 1.2rem;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 8px;
+            }
+            
+            .data-actions .btn {
+                min-width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .tab {
+                min-width: 100%;
+            }
+            
+            .chart-container {
+                height: 200px;
+            }
+        }
+        
+        /* Print styles */
+        @media print {
+            .tabs, .mobile-nav, .btn, .data-actions {
+                display: none !important;
+            }
+            
+            .tab-content {
+                display: block !important;
+            }
+            
+            .card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div>
+                    <h1>My Financial Tracker</h1>
+                    <p>Manage your finances effectively with this comprehensive tracking tool</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-success" id="export-data-btn">
+                        <i class="fas fa-file-export"></i> Export
+                    </button>
+                    <button class="btn btn-primary" id="import-data-btn">
+                        <i class="fas fa-file-import"></i> Import
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="dashboard">Dashboard</div>
+            <div class="tab" data-tab="transactions">Transactions</div>
+            <div class="tab" data-tab="categories">Categories</div>
+            <div class="tab" data-tab="budget">Budget Planning</div>
+            <div class="tab" data-tab="data-management">Data Management</div>
+        </div>
+        
+        <!-- Dashboard Tab -->
+        <div class="tab-content active" id="dashboard">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2>Financial Summary</h2>
+                    <div class="summary-item">
+                        <span>Monthly Income:</span>
+                        <span class="positive">S$9,000.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Fixed Expenses:</span>
+                        <span class="negative">S$8,700.00</span>
+                    </div>
+                    <div class="summary-item total">
+                        <span>Discretionary Cash:</span>
+                        <span class="positive">S$300.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>This Month's Spending:</span>
+                        <span id="month-spending" class="negative">S$0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Remaining Budget:</span>
+                        <span id="remaining-budget" class="positive">S$300.00</span>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2>Budget Status</h2>
+                    <div id="budget-status">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2>Quick Actions</h2>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="add-transaction-btn">
+                            <i class="fas fa-plus"></i> Add Transaction
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-success" id="add-category-btn">
+                            <i class="fas fa-tags"></i> Manage Categories
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-warning" id="generate-report-btn">
+                            <i class="fas fa-chart-bar"></i> Generate Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Spending Overview</h2>
+                <div class="chart-container">
+                    <canvas id="spendingChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Budget vs Actual</h2>
+                <div class="chart-container">
+                    <canvas id="budgetChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Financial Alerts</h2>
+                <div id="alerts-container">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Transactions Tab -->
+        <div class="tab-content" id="transactions">
+            <div class="card">
+                <h2>Transaction History</h2>
+                <button class="btn btn-primary" id="show-add-transaction">
+                    <i class="fas fa-plus"></i> Add New Transaction
+                </button>
+                <table id="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-body">
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card" id="add-transaction-form" style="display: none;">
+                <h2>Add New Transaction</h2>
+                <form id="transaction-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transaction-date">Date</label>
+                            <input type="date" id="transaction-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="transaction-category">Category</label>
+                            <select id="transaction-category" required>
+                                <!-- Will be populated by JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="transaction-description">Description</label>
+                        <input type="text" id="transaction-description" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transaction-amount">Amount (S$)</label>
+                            <input type="number" id="transaction-amount" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="transaction-type">Type</label>
+                            <select id="transaction-type" required>
+                                <option value="expense">Expense</option>
+                                <option value="income">Income</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Add Transaction
+                        </button>
+                        <button type="button" class="btn btn-danger" id="cancel-transaction">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Categories Tab -->
+        <div class="tab-content" id="categories">
+            <div class="card">
+                <h2>Category Management</h2>
+                <button class="btn btn-primary" id="show-add-category">
+                    <i class="fas fa-plus"></i> Add New Category
+                </button>
+                <table id="categories-table">
+                    <thead>
+                        <tr>
+                            <th>Category Name</th>
+                            <th>Type</th>
+                            <th>Budget Amount</th>
+                            <th>Parent Category</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="categories-body">
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card" id="add-category-form" style="display: none;">
+                <h2>Add New Category</h2>
+                <form id="category-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="category-name">Category Name</label>
+                            <input type="text" id="category-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="category-type">Type</label>
+                            <select id="category-type" required>
+                                <option value="expense">Expense</option>
+                                <option value="income">Income</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="category-budget">Budget Amount (S$)</label>
+                            <input type="number" id="category-budget" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="category-parent">Parent Category</label>
+                            <select id="category-parent">
+                                <option value="">None (Main Category)</option>
+                                <!-- Will be populated by JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Add Category
+                        </button>
+                        <button type="button" class="btn btn-danger" id="cancel-category">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Budget Tab -->
+        <div class="tab-content" id="budget">
+            <div class="card">
+                <h2>Budget Planning</h2>
+                <p>Based on your income of S$9,000 and fixed expenses of S$8,700</p>
+                <div class="chart-container">
+                    <canvas id="budgetPlanChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Budget Allocation</h2>
+                <table id="budget-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Budgeted Amount</th>
+                            <th>Actual Spent</th>
+                            <th>Remaining</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="budget-body">
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Data Management Tab -->
+        <div class="tab-content" id="data-management">
+            <div class="card">
+                <h2>Data Management</h2>
+                <p>Backup and restore your financial data to keep it safe and secure.</p>
+                
+                <div class="data-actions">
+                    <button class="btn btn-success" id="export-data-btn-2">
+                        <i class="fas fa-file-export"></i> Export Data
+                    </button>
+                    <button class="btn btn-primary" id="import-data-btn-2">
+                        <i class="fas fa-file-import"></i> Import Data
+                    </button>
+                    <button class="btn btn-warning" id="print-data-btn">
+                        <i class="fas fa-print"></i> Print Report
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="backup-file">Import Data File</label>
+                    <input type="file" id="backup-file" accept=".json">
+                </div>
+                
+                <div class="card">
+                    <h3>Data Security Tips</h3>
+                    <ul>
+                        <li>Export your data regularly to avoid loss</li>
+                        <li>Store backup files in a secure location</li>
+                        <li>Use password protection for sensitive financial data</li>
+                        <li>Consider encrypting your backup files</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Navigation -->
+        <div class="mobile-nav">
+            <div class="mobile-nav-item active" data-tab="dashboard">
+                <i class="fas fa-home"></i>
+                <div>Dashboard</div>
+            </div>
+            <div class="mobile-nav-item" data-tab="transactions">
+                <i class="fas fa-exchange-alt"></i>
+                <div>Transactions</div>
+            </div>
+            <div class="mobile-nav-item" data-tab="categories">
+                <i class="fas fa-tags"></i>
+                <div>Categories</div>
+            </div>
+            <div class="mobile-nav-item" data-tab="budget">
+                <i class="fas fa-chart-pie"></i>
+                <div>Budget</div>
+            </div>
+            <div class="mobile-nav-item" data-tab="data-management">
+                <i class="fas fa-database"></i>
+                <div>Data</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initial data
+        let categories = [
+            { id: 1, name: "Rent", type: "expense", budget: 3300, parentId: null },
+            { id: 2, name: "Schooling", type: "expense", budget: 1500, parentId: null },
+            { id: 3, name: "Groceries", type: "expense", budget: 500, parentId: null },
+            { id: 4, name: "Utilities", type: "expense", budget: 500, parentId: null },
+            { id: 5, name: "Food (Eating Out)", type: "expense", budget: 500, parentId: null },
+            { id: 6, name: "Investments", type: "expense", budget: 1000, parentId: null },
+            { id: 7, name: "Loan Repayment", type: "expense", budget: 500, parentId: null },
+            { id: 8, name: "Parents", type: "expense", budget: 500, parentId: null },
+            { id: 9, name: "Tax", type: "expense", budget: 700, parentId: null },
+            { id: 10, name: "Travel", type: "expense", budget: 200, parentId: null },
+            { id: 11, name: "Discretionary Buffer", type: "expense", budget: 300, parentId: null },
+            { id: 12, name: "Salary", type: "income", budget: 9000, parentId: null }
+        ];
+
+        let transactions = [
+            { id: 1, date: "2023-11-01", categoryId: 1, description: "Monthly Rent", amount: 3300, type: "expense" },
+            { id: 2, date: "2023-11-01", categoryId: 6, description: "Monthly Investment", amount: 1000, type: "expense" },
+            { id: 3, date: "2023-11-02", categoryId: 3, description: "NTUC Groceries", amount: 85.50, type: "expense" },
+            { id: 4, date: "2023-11-02", categoryId: 5, description: "Lunch at Hawker", amount: 8.50, type: "expense" },
+            { id: 5, date: "2023-11-03", categoryId: 10, description: "Grab to Office", amount: 15.00, type: "expense" },
+            { id: 6, date: "2023-11-05", categoryId: 12, description: "Monthly Salary", amount: 9000, type: "income" }
+        ];
+
+        // DOM Elements
+        const tabContents = document.querySelectorAll('.tab-content');
+        const tabs = document.querySelectorAll('.tab');
+        const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+        const transactionsBody = document.getElementById('transactions-body');
+        const categoriesBody = document.getElementById('categories-body');
+        const budgetBody = document.getElementById('budget-body');
+        const budgetStatus = document.getElementById('budget-status');
+        const alertsContainer = document.getElementById('alerts-container');
+        const transactionCategorySelect = document.getElementById('transaction-category');
+        const categoryParentSelect = document.getElementById('category-parent');
+        const addTransactionForm = document.getElementById('add-transaction-form');
+        const addCategoryForm = document.getElementById('add-category-form');
+        const transactionForm = document.getElementById('transaction-form');
+        const categoryForm = document.getElementById('category-form');
+        const showAddTransactionBtn = document.getElementById('show-add-transaction');
+        const showAddCategoryBtn = document.getElementById('show-add-category');
+        const cancelTransactionBtn = document.getElementById('cancel-transaction');
+        const cancelCategoryBtn = document.getElementById('cancel-category');
+        const addTransactionBtn = document.getElementById('add-transaction-btn');
+        const addCategoryBtn = document.getElementById('add-category-btn');
+        const generateReportBtn = document.getElementById('generate-report-btn');
+        const exportDataBtn = document.getElementById('export-data-btn');
+        const importDataBtn = document.getElementById('import-data-btn');
+        const exportDataBtn2 = document.getElementById('export-data-btn-2');
+        const importDataBtn2 = document.getElementById('import-data-btn-2');
+        const printDataBtn = document.getElementById('print-data-btn');
+        const backupFileInput = document.getElementById('backup-file');
+
+        // Charts
+        let spendingChart, budgetChart, budgetPlanChart;
+
+        // Initialize the application
+        function init() {
+            setupEventListeners();
+            renderTransactions();
+            renderCategories();
+            updateBudgetTable();
+            updateBudgetStatus();
+            updateAlerts();
+            populateCategorySelects();
+            createCharts();
+            calculateMonthlySpending();
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+
+            // Mobile navigation
+            mobileNavItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const tabId = item.getAttribute('data-tab');
+                    switchTab(tabId);
+                    
+                    // Update active state for mobile nav
+                    mobileNavItems.forEach(navItem => {
+                        navItem.classList.remove('active');
+                    });
+                    item.classList.add('active');
+                });
+            });
+
+            // Form submissions
+            transactionForm.addEventListener('submit', handleTransactionSubmit);
+            categoryForm.addEventListener('submit', handleCategorySubmit);
+
+            // Button clicks
+            showAddTransactionBtn.addEventListener('click', () => showForm(addTransactionForm));
+            showAddCategoryBtn.addEventListener('click', () => showForm(addCategoryForm));
+            cancelTransactionBtn.addEventListener('click', () => hideForm(addTransactionForm));
+            cancelCategoryBtn.addEventListener('click', () => hideForm(addCategoryForm));
+            addTransactionBtn.addEventListener('click', () => {
+                switchTab('transactions');
+                setTimeout(() => showForm(addTransactionForm), 100);
+            });
+            addCategoryBtn.addEventListener('click', () => {
+                switchTab('categories');
+                setTimeout(() => showForm(addCategoryForm), 100);
+            });
+            generateReportBtn.addEventListener('click', generateMonthlyReport);
+            
+            // Data management buttons
+            exportDataBtn.addEventListener('click', exportData);
+            importDataBtn.addEventListener('click', () => backupFileInput.click());
+            exportDataBtn2.addEventListener('click', exportData);
+            importDataBtn2.addEventListener('click', () => backupFileInput.click());
+            printDataBtn.addEventListener('click', printReport);
+            
+            // File input change
+            backupFileInput.addEventListener('change', handleFileImport);
+        }
+
+        // Switch between tabs
+        function switchTab(tabId) {
+            tabs.forEach(tab => {
+                if (tab.getAttribute('data-tab') === tabId) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            tabContents.forEach(content => {
+                if (content.id === tabId) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+
+            // Update active state for mobile nav
+            mobileNavItems.forEach(item => {
+                if (item.getAttribute('data-tab') === tabId) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        // Show form
+        function showForm(form) {
+            form.style.display = 'block';
+            form.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Hide form
+        function hideForm(form) {
+            form.style.display = 'none';
+            form.reset();
+        }
+
+        // Populate category selects
+        function populateCategorySelects() {
+            // Clear existing options
+            transactionCategorySelect.innerHTML = '';
+            categoryParentSelect.innerHTML = '<option value="">None (Main Category)</option>';
+
+            // Add categories to selects
+            categories.forEach(category => {
+                const option1 = document.createElement('option');
+                option1.value = category.id;
+                option1.textContent = category.name;
+                transactionCategorySelect.appendChild(option1);
+
+                if (category.type === 'expense') {
+                    const option2 = document.createElement('option');
+                    option2.value = category.id;
+                    option2.textContent = category.name;
+                    categoryParentSelect.appendChild(option2);
+                }
+            });
+        }
+
+        // Handle transaction form submission
+        function handleTransactionSubmit(e) {
+            e.preventDefault();
+            
+            const date = document.getElementById('transaction-date').value;
+            const categoryId = parseInt(document.getElementById('transaction-category').value);
+            const description = document.getElementById('transaction-description').value;
+            const amount = parseFloat(document.getElementById('transaction-amount').value);
+            const type = document.getElementById('transaction-type').value;
+            
+            // Create new transaction
+            const newTransaction = {
+                id: transactions.length > 0 ? Math.max(...transactions.map(t => t.id)) + 1 : 1,
+                date,
+                categoryId,
+                description,
+                amount: type === 'expense' ? -Math.abs(amount) : Math.abs(amount),
+                type
+            };
+            
+            transactions.push(newTransaction);
+            renderTransactions();
+            updateBudgetTable();
+            updateBudgetStatus();
+            updateAlerts();
+            calculateMonthlySpending();
+            createCharts();
+            hideForm(addTransactionForm);
+            
+            alert('Transaction added successfully!');
+        }
+
+        // Handle category form submission
+        function handleCategorySubmit(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('category-name').value;
+            const type = document.getElementById('category-type').value;
+            const budget = parseFloat(document.getElementById('category-budget').value);
+            const parentId = document.getElementById('category-parent').value ? 
+                parseInt(document.getElementById('category-parent').value) : null;
+            
+            // Create new category
+            const newCategory = {
+                id: categories.length > 0 ? Math.max(...categories.map(c => c.id)) + 1 : 1,
+                name,
+                type,
+                budget,
+                parentId
+            };
+            
+            categories.push(newCategory);
+            renderCategories();
+            populateCategorySelects();
+            updateBudgetTable();
+            updateBudgetStatus();
+            createCharts();
+            hideForm(addCategoryForm);
+            
+            alert('Category added successfully!');
+        }
+
+        // Render transactions table
+        function renderTransactions() {
+            transactionsBody.innerHTML = '';
+            
+            if (transactions.length === 0) {
+                transactionsBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No transactions found</td></tr>';
+                return;
+            }
+            
+            // Sort transactions by date (newest first)
+            const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedTransactions.forEach(transaction => {
+                const category = categories.find(c => c.id === transaction.categoryId);
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${formatDate(transaction.date)}</td>
+                    <td>${category ? category.name : 'Unknown'}</td>
+                    <td>${transaction.description}</td>
+                    <td class="${transaction.amount >= 0 ? 'positive' : 'negative'}">S$${Math.abs(transaction.amount).toFixed(2)}</td>
+                    <td>${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteTransaction(${transaction.id})">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </td>
+                `;
+                
+                transactionsBody.appendChild(row);
+            });
+        }
+
+        // Render categories table
+        function renderCategories() {
+            categoriesBody.innerHTML = '';
+            
+            categories.forEach(category => {
+                const parentCategory = category.parentId ? 
+                    categories.find(c => c.id === category.parentId) : null;
+                
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${category.name}</td>
+                    <td>${category.type.charAt(0).toUpperCase() + category.type.slice(1)}</td>
+                    <td>S$${category.budget.toFixed(2)}</td>
+                    <td>${parentCategory ? parentCategory.name : 'None'}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id})">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </td>
+                `;
+                
+                categoriesBody.appendChild(row);
+            });
+        }
+
+        // Update budget table
+        function updateBudgetTable() {
+            budgetBody.innerHTML = '';
+            
+            const expenseCategories = categories.filter(c => c.type === 'expense' && c.parentId === null);
+            
+            expenseCategories.forEach(category => {
+                const categoryTransactions = transactions.filter(t => t.categoryId === category.id);
+                const totalSpent = categoryTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+                const remaining = category.budget - totalSpent;
+                
+                let status = '';
+                let statusClass = '';
+                
+                if (remaining >= category.budget * 0.2) {
+                    status = 'On Track';
+                    statusClass = 'status-good';
+                } else if (remaining > 0) {
+                    status = 'Warning';
+                    statusClass = 'status-warning';
+                } else {
+                    status = 'Over Budget';
+                    statusClass = 'status-bad';
+                }
+                
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${category.name}</td>
+                    <td>S$${category.budget.toFixed(2)}</td>
+                    <td>S$${totalSpent.toFixed(2)}</td>
+                    <td class="${remaining >= 0 ? 'positive' : 'negative'}">S$${remaining.toFixed(2)}</td>
+                    <td><span class="status-indicator ${statusClass}"></span>${status}</td>
+                `;
+                
+                budgetBody.appendChild(row);
+            });
+        }
+
+        // Update budget status
+        function updateBudgetStatus() {
+            budgetStatus.innerHTML = '';
+            
+            const expenseCategories = categories.filter(c => c.type === 'expense' && c.parentId === null);
+            
+            expenseCategories.forEach(category => {
+                const categoryTransactions = transactions.filter(t => t.categoryId === category.id);
+                const totalSpent = categoryTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+                const percentage = (totalSpent / category.budget) * 100;
+                
+                const statusItem = document.createElement('div');
+                statusItem.className = 'summary-item';
+                
+                let statusIndicator = '';
+                if (percentage < 70) {
+                    statusIndicator = '<span class="status-indicator status-good"></span>';
+                } else if (percentage < 100) {
+                    statusIndicator = '<span class="status-indicator status-warning"></span>';
+                } else {
+                    statusIndicator = '<span class="status-indicator status-bad"></span>';
+                }
+                
+                statusItem.innerHTML = `
+                    <span>${statusIndicator} ${category.name}</span>
+                    <span>${percentage.toFixed(1)}%</span>
+                `;
+                
+                budgetStatus.appendChild(statusItem);
+            });
+        }
+
+        // Update alerts
+        function updateAlerts() {
+            alertsContainer.innerHTML = '';
+            
+            // Check for over-budget categories
+            const expenseCategories = categories.filter(c => c.type === 'expense' && c.parentId === null);
+            let overBudgetCategories = [];
+            
+            expenseCategories.forEach(category => {
+                const categoryTransactions = transactions.filter(t => t.categoryId === category.id);
+                const totalSpent = categoryTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+                
+                if (totalSpent > category.budget) {
+                    overBudgetCategories.push(category.name);
+                }
+            });
+            
+            if (overBudgetCategories.length > 0) {
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-warning';
+                alert.innerHTML = `
+                    <strong>Budget Alert!</strong> You have exceeded your budget in the following categories: 
+                    ${overBudgetCategories.join(', ')}.
+                `;
+                alertsContainer.appendChild(alert);
+            }
+            
+            // Check discretionary buffer
+            const bufferCategory = categories.find(c => c.name === "Discretionary Buffer");
+            if (bufferCategory) {
+                const bufferTransactions = transactions.filter(t => t.categoryId === bufferCategory.id);
+                const bufferSpent = bufferTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+                
+                if (bufferSpent > bufferCategory.budget * 0.8) {
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-warning';
+                    alert.innerHTML = `
+                        <strong>Buffer Alert!</strong> You have used ${((bufferSpent / bufferCategory.budget) * 100).toFixed(1)}% 
+                        of your discretionary buffer. Consider reducing non-essential spending.
+                    `;
+                    alertsContainer.appendChild(alert);
+                }
+            }
+            
+            // If no alerts, show success message
+            if (alertsContainer.children.length === 0) {
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success';
+                alert.innerHTML = `
+                    <strong>All Good!</strong> Your finances are on track. Keep up the good work!
+                `;
+                alertsContainer.appendChild(alert);
+            }
+        }
+
+        // Calculate monthly spending
+        function calculateMonthlySpending() {
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            
+            const monthTransactions = transactions.filter(t => {
+                const transactionDate = new Date(t.date);
+                return transactionDate.getMonth() === currentMonth && 
+                       transactionDate.getFullYear() === currentYear &&
+                       t.type === 'expense';
+            });
+            
+            const totalSpent = monthTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+            
+            document.getElementById('month-spending').textContent = `S$${totalSpent.toFixed(2)}`;
+            document.getElementById('remaining-budget').textContent = `S$${(300 - totalSpent).toFixed(2)}`;
+        }
+
+        // Create charts
+        function createCharts() {
+            // Spending by category chart
+            const spendingCtx = document.getElementById('spendingChart').getContext('2d');
+            
+            if (spendingChart) {
+                spendingChart.destroy();
+            }
+            
+            const expenseCategories = categories.filter(c => c.type === 'expense' && c.parentId === null);
+            const categoryNames = expenseCategories.map(c => c.name);
+            const categorySpending = expenseCategories.map(category => {
+                const categoryTransactions = transactions.filter(t => t.categoryId === category.id);
+                return categoryTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+            });
+            
+            spendingChart = new Chart(spendingCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: categoryNames,
+                    datasets: [{
+                        data: categorySpending,
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+                            '#9966FF', '#FF9F40', '#8AC926', '#1982C4',
+                            '#6A4C93', '#F15BB5', '#00BBF9', '#00F5D4'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Spending by Category'
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Budget vs Actual chart
+            const budgetCtx = document.getElementById('budgetChart').getContext('2d');
+            
+            if (budgetChart) {
+                budgetChart.destroy();
+            }
+            
+            const budgetData = expenseCategories.map(category => category.budget);
+            const actualData = expenseCategories.map(category => {
+                const categoryTransactions = transactions.filter(t => t.categoryId === category.id);
+                return categoryTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+            });
+            
+            budgetChart = new Chart(budgetCtx, {
+                type: 'bar',
+                data: {
+                    labels: categoryNames,
+                    datasets: [
+                        {
+                            label: 'Budget',
+                            data: budgetData,
+                            backgroundColor: '#36A2EB'
+                        },
+                        {
+                            label: 'Actual',
+                            data: actualData,
+                            backgroundColor: '#FF6384'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Budget vs Actual Spending'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Budget planning chart
+            const budgetPlanCtx = document.getElementById('budgetPlanChart').getContext('2d');
+            
+            if (budgetPlanChart) {
+                budgetPlanChart.destroy();
+            }
+            
+            const totalBudget = expenseCategories.reduce((sum, c) => sum + c.budget, 0);
+            const income = categories.find(c => c.type === 'income').budget;
+            const savings = income - totalBudget;
+            
+            budgetPlanChart = new Chart(budgetPlanCtx, {
+                type: 'pie',
+                data: {
+                    labels: [...expenseCategories.map(c => c.name), 'Savings'],
+                    datasets: [{
+                        data: [...expenseCategories.map(c => c.budget), savings],
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+                            '#9966FF', '#FF9F40', '#8AC926', '#1982C4',
+                            '#6A4C93', '#F15BB5', '#00BBF9', '#00F5D4'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Budget Allocation'
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Export data to JSON file
+        function exportData() {
+            const data = {
+                categories: categories,
+                transactions: transactions,
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `singapore-financial-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            alert('Data exported successfully!');
+        }
+
+        // Handle file import
+        function handleFileImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const importedData = JSON.parse(event.target.result);
+                    
+                    if (importedData.categories && importedData.transactions) {
+                        if (confirm('This will replace all your current data. Are you sure?')) {
+                            categories = importedData.categories;
+                            transactions = importedData.transactions;
+                            
+                            // Reset file input
+                            backupFileInput.value = '';
+                            
+                            // Update UI
+                            renderTransactions();
+                            renderCategories();
+                            updateBudgetTable();
+                            updateBudgetStatus();
+                            updateAlerts();
+                            populateCategorySelects();
+                            createCharts();
+                            calculateMonthlySpending();
+                            
+                            alert('Data imported successfully!');
+                        }
+                    } else {
+                        alert('Invalid data file. Please select a valid backup file.');
+                    }
+                } catch (error) {
+                    alert('Error reading file. Please make sure it\'s a valid JSON file.');
+                    console.error('Import error:', error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Print report
+        function printReport() {
+            window.print();
+        }
+
+        // Delete transaction
+        function deleteTransaction(id) {
+            if (confirm('Are you sure you want to delete this transaction?')) {
+                transactions = transactions.filter(t => t.id !== id);
+                renderTransactions();
+                updateBudgetTable();
+                updateBudgetStatus();
+                updateAlerts();
+                calculateMonthlySpending();
+                createCharts();
+            }
+        }
+
+        // Delete category
+        function deleteCategory(id) {
+            const category = categories.find(c => c.id === id);
+            
+            // Check if category has transactions
+            const categoryTransactions = transactions.filter(t => t.categoryId === id);
+            if (categoryTransactions.length > 0) {
+                alert('Cannot delete category with existing transactions. Please reassign or delete those transactions first.');
+                return;
+            }
+            
+            // Check if category has subcategories
+            const subcategories = categories.filter(c => c.parentId === id);
+            if (subcategories.length > 0) {
+                alert('Cannot delete category with subcategories. Please delete or reassign the subcategories first.');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to delete the category "${category.name}"?`)) {
+                categories = categories.filter(c => c.id !== id);
+                renderCategories();
+                populateCategorySelects();
+                updateBudgetTable();
+                updateBudgetStatus();
+                createCharts();
+            }
+        }
+
+        // Generate monthly report
+        function generateMonthlyReport() {
+            const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+            const totalIncome = transactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+                
+            const totalExpenses = transactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+                
+            const netSavings = totalIncome - totalExpenses;
+            
+            alert(`Monthly Financial Report (${currentMonth})\n\n` +
+                  `Total Income: S$${totalIncome.toFixed(2)}\n` +
+                  `Total Expenses: S$${totalExpenses.toFixed(2)}\n` +
+                  `Net Savings: S$${netSavings.toFixed(2)}\n\n` +
+                  `A detailed report has been generated in the console.`);
+                  
+            // Log detailed report to console
+            console.group(`Monthly Financial Report - ${currentMonth}`);
+            console.log(`Total Income: S$${totalIncome.toFixed(2)}`);
+            console.log(`Total Expenses: S$${totalExpenses.toFixed(2)}`);
+            console.log(`Net Savings: S$${netSavings.toFixed(2)}`);
+            console.log('--- Category Breakdown ---');
+            
+            categories.filter(c => c.type === 'expense').forEach(category => {
+                const categoryTransactions = transactions.filter(t => t.categoryId === category.id);
+                const categoryTotal = categoryTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+                console.log(`${category.name}: S$${categoryTotal.toFixed(2)} (${((categoryTotal / totalExpenses) * 100).toFixed(1)}%)`);
+            });
+            
+            console.groupEnd();
+        }
+
+        // Format date for display
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString(undefined, options);
+        }
+
+        // Initialize the app when the page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
