@@ -977,25 +977,34 @@
             }
         }
 
-        // Update financial summary
+        // Update financial summary - FIXED VERSION
         function updateFinancialSummary() {
-            // Calculate monthly income from income categories
-            const monthlyIncome = categories
-                .filter(c => c.type === 'income')
-                .reduce((sum, category) => sum + category.budget, 0);
+            // Calculate actual income from transactions (positive amounts)
+            const actualIncome = transactions
+                .filter(t => t.amount > 0)
+                .reduce((sum, t) => sum + t.amount, 0);
             
-            // Calculate total expenses from expense categories
-            const totalExpenses = categories
-                .filter(c => c.type !== 'income')
-                .reduce((sum, category) => sum + category.budget, 0);
+            // Calculate actual expenses from transactions (negative amounts)
+            const actualExpenses = transactions
+                .filter(t => t.amount < 0)
+                .reduce((sum, t) => sum + Math.abs(t.amount), 0);
             
-            // Calculate discretionary cash
-            const discretionaryCash = monthlyIncome - totalExpenses;
+            // Calculate discretionary cash (actual income - actual expenses)
+            const discretionaryCash = actualIncome - actualExpenses;
             
             // Update the DOM
-            document.getElementById('monthly-income').textContent = `S$${monthlyIncome.toFixed(2)}`;
-            document.getElementById('total-expenses').textContent = `S$${totalExpenses.toFixed(2)}`;
+            document.getElementById('monthly-income').textContent = `S$${actualIncome.toFixed(2)}`;
+            document.getElementById('total-expenses').textContent = `S$${actualExpenses.toFixed(2)}`;
             document.getElementById('discretionary-cash').textContent = `S$${discretionaryCash.toFixed(2)}`;
+            
+            // Update colors based on values
+            const incomeElement = document.getElementById('monthly-income');
+            const expensesElement = document.getElementById('total-expenses');
+            const cashElement = document.getElementById('discretionary-cash');
+            
+            incomeElement.className = 'value positive';
+            expensesElement.className = 'value negative';
+            cashElement.className = discretionaryCash >= 0 ? 'value positive' : 'value negative';
         }
 
         // Render transactions table
