@@ -758,14 +758,8 @@
             { id: 12, name: "Salary", type: "income", budget: 9000, parentId: null }
         ];
 
-        let transactions = [
-            { id: 1, date: "2023-11-01", categoryId: 1, description: "Monthly Rent", amount: 3300, type: "expense" },
-            { id: 2, date: "2023-11-01", categoryId: 6, description: "Monthly Investment", amount: 1000, type: "expense" },
-            { id: 3, date: "2023-11-02", categoryId: 3, description: "NTUC Groceries", amount: 85.50, type: "expense" },
-            { id: 4, date: "2023-11-02", categoryId: 5, description: "Lunch at Hawker", amount: 8.50, type: "expense" },
-            { id: 5, date: "2023-11-03", categoryId: 10, description: "Grab to Office", amount: 15.00, type: "expense" },
-            { id: 6, date: "2023-11-05", categoryId: 12, description: "Monthly Salary", amount: 9000, type: "income" }
-        ];
+        // Empty transactions array - no dummy data
+        let transactions = [];
 
         // DOM Elements
         const tabContents = document.querySelectorAll('.tab-content');
