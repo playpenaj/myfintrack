@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Financial Tracker</title>
+    <title>My Expense Tracker</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -14,6 +14,9 @@
             --danger: #e74c3c;
             --light: #ecf0f1;
             --dark: #34495e;
+            --spending: #e74c3c;
+            --savings: #3498db;
+            --investments: #2ecc71;
         }
         
         * {
@@ -26,129 +29,65 @@
         body {
             background-color: #f5f7fa;
             color: #333;
-            line-height: 1.6;
-            padding: 0;
+            line-height: 1.5;
+            height: 100vh;
+            overflow: hidden;
+            font-size: 14px;
         }
         
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 15px;
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
         
         header {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 15px 0;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-        
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 15px;
-        }
-        
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
+            padding: 12px;
+            text-align: center;
+            flex-shrink: 0;
         }
         
         header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
+            font-size: 1.3rem;
+            margin-bottom: 4px;
+            font-weight: 600;
         }
         
         header p {
+            font-size: 0.75rem;
             opacity: 0.9;
-            font-size: 0.9rem;
         }
         
-        .card {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-3px);
-        }
-        
-        .card h2 {
-            color: var(--primary);
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
-            font-size: 1.3rem;
-        }
-        
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .summary-item {
+        .tabs-container {
             display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px dashed #eee;
-            font-size: 0.95rem;
-        }
-        
-        .summary-item.total {
-            font-weight: bold;
-            border-bottom: 2px solid var(--primary);
-            font-size: 1rem;
-        }
-        
-        .positive {
-            color: var(--success);
-        }
-        
-        .negative {
-            color: var(--danger);
-        }
-        
-        .tabs {
-            display: flex;
-            margin-bottom: 15px;
             background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            flex-wrap: wrap;
+            overflow-x: auto;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         
         .tab {
-            padding: 12px 15px;
-            flex: 1;
-            text-align: center;
+            padding: 10px 12px;
+            white-space: nowrap;
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 600;
-            min-width: 120px;
+            border-bottom: 2px solid transparent;
+            font-size: 0.85rem;
         }
         
         .tab.active {
-            background: var(--secondary);
-            color: white;
+            border-bottom: 2px solid var(--secondary);
+            color: var(--secondary);
         }
         
-        .tab:hover:not(.active) {
-            background: #f8f9fa;
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            padding-bottom: 70px;
         }
         
         .tab-content {
@@ -159,15 +98,111 @@
             display: block;
         }
         
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #eee;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .summary-item {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .summary-item .label {
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        
+        .summary-item .value {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .positive {
+            color: var(--success);
+        }
+        
+        .negative {
+            color: var(--danger);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 180px;
+            margin-top: 12px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+        
+        .status-good {
+            background-color: var(--success);
+        }
+        
+        .status-warning {
+            background-color: var(--warning);
+        }
+        
+        .status-bad {
+            background-color: var(--danger);
+        }
+        
+        .alert {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .alert-success {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 0.9rem;
+            margin-top: 8px;
+            font-size: 0.8rem;
         }
         
         th, td {
-            padding: 10px 12px;
+            padding: 8px 6px;
             text-align: left;
             border-bottom: 1px solid #eee;
         }
@@ -176,28 +211,31 @@
             background-color: #f8f9fa;
             font-weight: 600;
             color: var(--primary);
+            font-size: 0.75rem;
         }
         
-        tr:hover {
-            background-color: #f8f9fa;
+        tr:last-child td {
+            border-bottom: none;
         }
         
         .btn {
             padding: 8px 12px;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
+            gap: 4px;
+            width: 100%;
+            margin-bottom: 8px;
         }
         
         .btn i {
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
         
         .btn-primary {
@@ -222,257 +260,223 @@
         
         .btn:hover {
             opacity: 0.9;
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
         
         .form-group {
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             font-weight: 600;
             color: var(--dark);
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
         
         input, select {
             width: 100%;
-            padding: 10px;
+            padding: 8px;
             border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 0.95rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
         }
         
         .form-row {
             display: flex;
-            gap: 12px;
+            gap: 10px;
         }
         
         .form-row .form-group {
             flex: 1;
         }
         
-        .chart-container {
-            position: relative;
-            height: 250px;
-            margin-top: 15px;
-        }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 5px;
-        }
-        
-        .status-good {
-            background-color: var(--success);
-        }
-        
-        .status-warning {
-            background-color: var(--warning);
-        }
-        
-        .status-bad {
-            background-color: var(--danger);
-        }
-        
-        .alert {
-            padding: 12px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        
-        .alert-warning {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-        
-        .alert-success {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        
-        .data-actions {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .data-actions .btn {
-            flex: 1;
-            min-width: 140px;
-        }
-        
-        .mobile-nav {
-            display: none;
+        .actions-footer {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             background: white;
-            padding: 10px;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            padding: 12px;
+            box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 8px;
             z-index: 1000;
         }
         
-        .mobile-nav-item {
+        .actions-footer .btn {
+            margin-bottom: 0;
             flex: 1;
-            text-align: center;
-            padding: 8px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
         }
         
-        .mobile-nav-item.active {
-            background: var(--secondary);
+        .hidden {
+            display: none;
+        }
+        
+        .compact-list {
+            list-style: none;
+        }
+        
+        .compact-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+        }
+        
+        .compact-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.65rem;
+            font-weight: bold;
             color: white;
         }
         
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .header-content {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .header-actions {
-                margin-top: 10px;
-                display: flex;
-                gap: 10px;
-            }
-            
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .form-row {
-                flex-direction: column;
-                gap: 0;
-            }
-            
-            .tabs {
-                display: none;
-            }
-            
-            .mobile-nav {
-                display: flex;
-            }
-            
-            table {
-                display: block;
-                overflow-x: auto;
-            }
-            
-            .card h2 {
-                font-size: 1.2rem;
-            }
-            
-            .btn {
-                width: 100%;
-                margin-bottom: 8px;
-            }
-            
-            .data-actions .btn {
-                min-width: 100%;
-            }
+        .badge-spending {
+            background: var(--spending);
+        }
+        
+        .badge-savings {
+            background: var(--savings);
+        }
+        
+        .badge-investments {
+            background: var(--investments);
+        }
+        
+        .category-type {
+            font-size: 0.7rem;
+            padding: 1px 4px;
+            border-radius: 3px;
+            margin-left: 4px;
+        }
+        
+        .subcategory {
+            padding-left: 15px;
+            font-size: 0.75rem;
+            color: #666;
+        }
+        
+        .budget-progress {
+            margin-top: 4px;
+            height: 4px;
+            background-color: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .budget-progress-bar {
+            height: 100%;
+            border-radius: 2px;
+        }
+        
+        .progress-spending {
+            background-color: var(--spending);
+        }
+        
+        .progress-savings {
+            background-color: var(--savings);
+        }
+        
+        .progress-investments {
+            background-color: var(--investments);
+        }
+        
+        .readme-content {
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+        
+        .readme-content h3 {
+            margin: 15px 0 8px 0;
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+        
+        .readme-content p {
+            margin-bottom: 10px;
+        }
+        
+        .readme-content ul {
+            margin-left: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .readme-content li {
+            margin-bottom: 5px;
+        }
+        
+        .recommendation {
+            background-color: #e8f4fd;
+            border-left: 4px solid var(--secondary);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 0 4px 4px 0;
         }
         
         @media (max-width: 480px) {
-            header h1 {
-                font-size: 1.5rem;
-            }
-            
-            .tab {
-                min-width: 100%;
+            .summary-grid {
+                grid-template-columns: 1fr;
             }
             
             .chart-container {
-                height: 200px;
-            }
-        }
-        
-        /* Print styles */
-        @media print {
-            .tabs, .mobile-nav, .btn, .data-actions {
-                display: none !important;
-            }
-            
-            .tab-content {
-                display: block !important;
-            }
-            
-            .card {
-                box-shadow: none;
-                border: 1px solid #ddd;
+                height: 160px;
             }
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
+    <div class="app-container">
         <header>
-            <div class="header-content">
-                <div>
-                    <h1>My Financial Tracker</h1>
-                    <p>Manage your finances effectively with this comprehensive tracking tool</p>
-                </div>
-                <div class="header-actions">
-                    <button class="btn btn-success" id="export-data-btn">
-                        <i class="fas fa-file-export"></i> Export
-                    </button>
-                    <button class="btn btn-primary" id="import-data-btn">
-                        <i class="fas fa-file-import"></i> Import
-                    </button>
-                </div>
-            </div>
+            <h1>My Expense Tracker</h1>
+            <p>Smart financial management for your needs</p>
         </header>
         
-        <div class="tabs">
+        <div class="tabs-container">
             <div class="tab active" data-tab="dashboard">Dashboard</div>
             <div class="tab" data-tab="transactions">Transactions</div>
             <div class="tab" data-tab="categories">Categories</div>
-            <div class="tab" data-tab="budget">Budget Planning</div>
-            <div class="tab" data-tab="data-management">Data Management</div>
+            <div class="tab" data-tab="budget">Budget</div>
+            <div class="tab" data-tab="readme">Read Me</div>
         </div>
         
-        <!-- Dashboard Tab -->
-        <div class="tab-content active" id="dashboard">
-            <div class="dashboard-grid">
+        <div class="content-area">
+            <!-- Dashboard Tab -->
+            <div class="tab-content active" id="dashboard">
                 <div class="card">
                     <h2>Financial Summary</h2>
-                    <div class="summary-item">
-                        <span>Monthly Income:</span>
-                        <span class="positive">S$9,000.00</span>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="label">Monthly Income</div>
+                            <div class="value positive" id="monthly-income">S$0</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="label">Total Expenses</div>
+                            <div class="value negative" id="total-expenses">S$0</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="label">Discretionary Cash</div>
+                            <div class="value positive" id="discretionary-cash">S$0</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="label">This Month's Spending</div>
+                            <div class="value negative" id="month-spending">S$0</div>
+                        </div>
                     </div>
-                    <div class="summary-item">
-                        <span>Fixed Expenses:</span>
-                        <span class="negative">S$8,700.00</span>
-                    </div>
-                    <div class="summary-item total">
-                        <span>Discretionary Cash:</span>
-                        <span class="positive">S$300.00</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>This Month's Spending:</span>
-                        <span id="month-spending" class="negative">S$0.00</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Remaining Budget:</span>
-                        <span id="remaining-budget" class="positive">S$300.00</span>
+                </div>
+                
+                <div class="card">
+                    <h2>Spending by Category</h2>
+                    <div class="chart-container">
+                        <canvas id="spendingChart"></canvas>
                     </div>
                 </div>
                 
@@ -484,75 +488,42 @@
                 </div>
                 
                 <div class="card">
-                    <h2>Quick Actions</h2>
-                    <div class="form-group">
-                        <button class="btn btn-primary" id="add-transaction-btn">
-                            <i class="fas fa-plus"></i> Add Transaction
-                        </button>
-                    </div>
-                    <div class="form-group">
-                        <button class="btn btn-success" id="add-category-btn">
-                            <i class="fas fa-tags"></i> Manage Categories
-                        </button>
-                    </div>
-                    <div class="form-group">
-                        <button class="btn btn-warning" id="generate-report-btn">
-                            <i class="fas fa-chart-bar"></i> Generate Report
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>Spending Overview</h2>
-                <div class="chart-container">
-                    <canvas id="spendingChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>Budget vs Actual</h2>
-                <div class="chart-container">
-                    <canvas id="budgetChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>Financial Alerts</h2>
-                <div id="alerts-container">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-            </div>
-        </div>
-        
-        <!-- Transactions Tab -->
-        <div class="tab-content" id="transactions">
-            <div class="card">
-                <h2>Transaction History</h2>
-                <button class="btn btn-primary" id="show-add-transaction">
-                    <i class="fas fa-plus"></i> Add New Transaction
-                </button>
-                <table id="transactions-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Category</th>
-                            <th>Description</th>
-                            <th>Amount</th>
-                            <th>Type</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transactions-body">
+                    <h2>Financial Alerts</h2>
+                    <div id="alerts-container">
                         <!-- Will be populated by JavaScript -->
-                    </tbody>
-                </table>
+                    </div>
+                </div>
             </div>
             
-            <div class="card" id="add-transaction-form" style="display: none;">
-                <h2>Add New Transaction</h2>
-                <form id="transaction-form">
-                    <div class="form-row">
+            <!-- Transactions Tab -->
+            <div class="tab-content" id="transactions">
+                <div class="card">
+                    <h2>Transaction History</h2>
+                    <button class="btn btn-primary" id="show-add-transaction">
+                        <i class="fas fa-plus"></i> Add Transaction
+                    </button>
+                    <button class="btn btn-danger" id="delete-all-transactions">
+                        <i class="fas fa-trash"></i> Delete All Transactions
+                    </button>
+                    
+                    <table id="transactions-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-body">
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="card hidden" id="add-transaction-form">
+                    <h2>Add New Transaction</h2>
+                    <form id="transaction-form">
                         <div class="form-group">
                             <label for="transaction-date">Date</label>
                             <input type="date" id="transaction-date" required>
@@ -563,203 +534,227 @@
                                 <!-- Will be populated by JavaScript -->
                             </select>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="transaction-description">Description</label>
-                        <input type="text" id="transaction-description" required>
-                    </div>
-                    <div class="form-row">
                         <div class="form-group">
-                            <label for="transaction-amount">Amount (S$)</label>
-                            <input type="number" id="transaction-amount" step="0.01" required>
+                            <label for="transaction-description">Description</label>
+                            <input type="text" id="transaction-description" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="transaction-amount">Amount (S$)</label>
+                                <input type="number" id="transaction-amount" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="transaction-type">Type</label>
+                                <select id="transaction-type" required>
+                                    <option value="expense">Expense</option>
+                                    <option value="income">Income</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label for="transaction-type">Type</label>
-                            <select id="transaction-type" required>
-                                <option value="expense">Expense</option>
-                                <option value="income">Income</option>
-                            </select>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Add Transaction
+                            </button>
+                            <button type="button" class="btn btn-danger" id="cancel-transaction">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-check"></i> Add Transaction
-                        </button>
-                        <button type="button" class="btn btn-danger" id="cancel-transaction">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        
-        <!-- Categories Tab -->
-        <div class="tab-content" id="categories">
-            <div class="card">
-                <h2>Category Management</h2>
-                <button class="btn btn-primary" id="show-add-category">
-                    <i class="fas fa-plus"></i> Add New Category
-                </button>
-                <table id="categories-table">
-                    <thead>
-                        <tr>
-                            <th>Category Name</th>
-                            <th>Type</th>
-                            <th>Budget Amount</th>
-                            <th>Parent Category</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="categories-body">
-                        <!-- Will be populated by JavaScript -->
-                    </tbody>
-                </table>
+                    </form>
+                </div>
             </div>
             
-            <div class="card" id="add-category-form" style="display: none;">
-                <h2>Add New Category</h2>
-                <form id="category-form">
-                    <div class="form-row">
+            <!-- Categories Tab -->
+            <div class="tab-content" id="categories">
+                <div class="card">
+                    <h2>Category Management</h2>
+                    <button class="btn btn-primary" id="show-add-category">
+                        <i class="fas fa-plus"></i> Add Category
+                    </button>
+                    
+                    <table id="categories-table">
+                        <thead>
+                            <tr>
+                                <th>Category Name</th>
+                                <th>Type</th>
+                                <th>Budget</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categories-body">
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="card hidden" id="add-category-form">
+                    <h2>Add New Category</h2>
+                    <form id="category-form">
                         <div class="form-group">
                             <label for="category-name">Category Name</label>
                             <input type="text" id="category-name" required>
                         </div>
-                        <div class="form-group">
-                            <label for="category-type">Type</label>
-                            <select id="category-type" required>
-                                <option value="expense">Expense</option>
-                                <option value="income">Income</option>
-                            </select>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="category-type">Type</label>
+                                <select id="category-type" required>
+                                    <option value="spending">Spending</option>
+                                    <option value="savings">Savings</option>
+                                    <option value="investments">Investments</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="category-budget">Budget (S$)</label>
+                                <input type="number" id="category-budget" step="0.01" required>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row">
                         <div class="form-group">
-                            <label for="category-budget">Budget Amount (S$)</label>
-                            <input type="number" id="category-budget" step="0.01" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="category-parent">Parent Category</label>
+                            <label for="category-parent">Subcategory of</label>
                             <select id="category-parent">
                                 <option value="">None (Main Category)</option>
                                 <!-- Will be populated by JavaScript -->
                             </select>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-check"></i> Add Category
-                        </button>
-                        <button type="button" class="btn btn-danger" id="cancel-category">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        
-        <!-- Budget Tab -->
-        <div class="tab-content" id="budget">
-            <div class="card">
-                <h2>Budget Planning</h2>
-                <p>Based on your income of S$9,000 and fixed expenses of S$8,700</p>
-                <div class="chart-container">
-                    <canvas id="budgetPlanChart"></canvas>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Add Category
+                            </button>
+                            <button type="button" class="btn btn-danger" id="cancel-category">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
             
-            <div class="card">
-                <h2>Budget Allocation</h2>
-                <table id="budget-table">
-                    <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>Budgeted Amount</th>
-                            <th>Actual Spent</th>
-                            <th>Remaining</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="budget-body">
-                        <!-- Will be populated by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <!-- Data Management Tab -->
-        <div class="tab-content" id="data-management">
-            <div class="card">
-                <h2>Data Management</h2>
-                <p>Backup and restore your financial data to keep it safe and secure.</p>
-                
-                <div class="data-actions">
-                    <button class="btn btn-success" id="export-data-btn-2">
-                        <i class="fas fa-file-export"></i> Export Data
-                    </button>
-                    <button class="btn btn-primary" id="import-data-btn-2">
-                        <i class="fas fa-file-import"></i> Import Data
-                    </button>
-                    <button class="btn btn-warning" id="print-data-btn">
-                        <i class="fas fa-print"></i> Print Report
-                    </button>
-                </div>
-                
-                <div class="form-group">
-                    <label for="backup-file">Import Data File</label>
-                    <input type="file" id="backup-file" accept=".json">
+            <!-- Budget Tab -->
+            <div class="tab-content" id="budget">
+                <div class="card">
+                    <h2>Budget Planning</h2>
+                    <div class="chart-container">
+                        <canvas id="budgetPlanChart"></canvas>
+                    </div>
                 </div>
                 
                 <div class="card">
-                    <h3>Data Security Tips</h3>
-                    <ul>
-                        <li>Export your data regularly to avoid loss</li>
-                        <li>Store backup files in a secure location</li>
-                        <li>Use password protection for sensitive financial data</li>
-                        <li>Consider encrypting your backup files</li>
-                    </ul>
+                    <h2>Budget Allocation</h2>
+                    <table id="budget-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Budgeted</th>
+                                <th>Spent</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="budget-body">
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Read Me Tab -->
+            <div class="tab-content" id="readme">
+                <div class="card">
+                    <h2>70-20-10 Budget Rule</h2>
+                    <div class="readme-content">
+                        <p>The 70-20-10 rule is a simple budgeting framework that helps you allocate your income effectively for financial stability and growth.</p>
+                        
+                        <h3>Spending (70%)</h3>
+                        <p>This portion of your income should cover all your essential and discretionary expenses:</p>
+                        <ul>
+                            <li><strong>Housing:</strong> Rent, mortgage, property taxes</li>
+                            <li><strong>Utilities:</strong> Electricity, water, internet, phone</li>
+                            <li><strong>Food:</strong> Groceries and dining out</li>
+                            <li><strong>Transportation:</strong> Public transport, fuel, car maintenance</li>
+                            <li><strong>Healthcare:</strong> Medical expenses, insurance</li>
+                            <li><strong>Personal Care:</strong> Toiletries, grooming</li>
+                            <li><strong>Entertainment:</strong> Leisure activities, hobbies</li>
+                            <li><strong>Shopping:</strong> Clothing, household items</li>
+                        </ul>
+                        
+                        <h3>Savings (20%)</h3>
+                        <p>This portion is dedicated to building financial security:</p>
+                        <ul>
+                            <li><strong>Emergency Fund:</strong> 3-6 months of living expenses</li>
+                            <li><strong>Debt Payments:</strong> Credit cards, loans (beyond minimum payments)</li>
+                            <li><strong>Sinking Funds:</strong> Planned future expenses (vacations, gifts, repairs)</li>
+                            <li><strong>Short-term Goals:</strong> Down payments, large purchases</li>
+                        </ul>
+                        
+                        <h3>Investments (10%)</h3>
+                        <p>This portion focuses on long-term wealth building:</p>
+                        <ul>
+                            <li><strong>Retirement Accounts:</strong> CPF, SRS, pension plans</li>
+                            <li><strong>Stocks & ETFs:</strong> Equity investments for growth</li>
+                            <li><strong>Real Estate:</strong> Property investments</li>
+                            <li><strong>Education:</strong> Skills development, courses</li>
+                            <li><strong>Business Ventures:</strong> Side businesses or investments</li>
+                            <li><strong>Emergency Fund:</strong> Long-term security buffer (recommended: 3-6 months of essential expenses)</li>
+                        </ul>
+                        
+                        <div class="recommendation">
+                            <h3>Emergency Fund Recommendation</h3>
+                            <p>We recommend building an emergency fund of <strong>S$26,100 to S$52,200</strong> (3-6 months of expenses).</p>
+                            <p>You can start by allocating S$500-1,000 monthly to your emergency fund until you reach your target.</p>
+                        </div>
+                        
+                        <h3>How to Implement</h3>
+                        <p>1. Calculate your monthly after-tax income</p>
+                        <p>2. Allocate 70% to spending categories</p>
+                        <p>3. Dedicate 20% to savings goals</p>
+                        <p>4. Invest the remaining 10% for future growth</p>
+                        <p>5. Track your expenses regularly using this app</p>
+                        <p>6. Adjust categories as needed to stay within budget</p>
+                        
+                        <h3>Benefits</h3>
+                        <ul>
+                            <li>Simple to understand and implement</li>
+                            <li>Balances present needs with future security</li>
+                            <li>Encourages disciplined spending and saving</li>
+                            <li>Provides clear financial priorities</li>
+                            <li>Adaptable to different income levels</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <!-- Mobile Navigation -->
-        <div class="mobile-nav">
-            <div class="mobile-nav-item active" data-tab="dashboard">
-                <i class="fas fa-home"></i>
-                <div>Dashboard</div>
-            </div>
-            <div class="mobile-nav-item" data-tab="transactions">
-                <i class="fas fa-exchange-alt"></i>
-                <div>Transactions</div>
-            </div>
-            <div class="mobile-nav-item" data-tab="categories">
-                <i class="fas fa-tags"></i>
-                <div>Categories</div>
-            </div>
-            <div class="mobile-nav-item" data-tab="budget">
-                <i class="fas fa-chart-pie"></i>
-                <div>Budget</div>
-            </div>
-            <div class="mobile-nav-item" data-tab="data-management">
-                <i class="fas fa-database"></i>
-                <div>Data</div>
-            </div>
+        <div class="actions-footer">
+            <button class="btn btn-success" id="export-data-btn">
+                <i class="fas fa-file-export"></i> Export
+            </button>
+            <button class="btn btn-primary" id="import-data-btn">
+                <i class="fas fa-file-import"></i> Import
+            </button>
+            <input type="file" id="backup-file" accept=".json" class="hidden">
         </div>
     </div>
 
     <script>
-        // Initial data
+        // Initial data based on the provided JSON with additional categories
         let categories = [
-            { id: 1, name: "Rent", type: "expense", budget: 3300, parentId: null },
-            { id: 2, name: "Schooling", type: "expense", budget: 1500, parentId: null },
-            { id: 3, name: "Groceries", type: "expense", budget: 500, parentId: null },
-            { id: 4, name: "Utilities", type: "expense", budget: 500, parentId: null },
-            { id: 5, name: "Food (Eating Out)", type: "expense", budget: 500, parentId: null },
-            { id: 6, name: "Investments", type: "expense", budget: 1000, parentId: null },
-            { id: 7, name: "Loan Repayment", type: "expense", budget: 500, parentId: null },
-            { id: 8, name: "Parents", type: "expense", budget: 500, parentId: null },
-            { id: 9, name: "Tax", type: "expense", budget: 700, parentId: null },
-            { id: 10, name: "Travel", type: "expense", budget: 200, parentId: null },
-            { id: 11, name: "Discretionary Buffer", type: "expense", budget: 300, parentId: null },
+            // Spending
+            { id: 1, name: "Rent", type: "spending", budget: 3300, parentId: null },
+            { id: 2, name: "Schooling", type: "spending", budget: 1500, parentId: null },
+            { id: 3, name: "Groceries", type: "spending", budget: 500, parentId: null },
+            { id: 4, name: "Utilities", type: "spending", budget: 500, parentId: null },
+            { id: 5, name: "Food (Eating Out)", type: "spending", budget: 500, parentId: null },
+            { id: 9, name: "Tax", type: "spending", budget: 700, parentId: null },
+            { id: 10, name: "Travel", type: "spending", budget: 200, parentId: null },
+            { id: 11, name: "Discretionary Buffer", type: "spending", budget: 300, parentId: null },
+            { id: 13, name: "Shopping", type: "spending", budget: 300, parentId: null },
+            { id: 14, name: "Healthcare", type: "spending", budget: 200, parentId: null },
+            
+            // Savings
+            { id: 7, name: "Loan Repayment", type: "savings", budget: 500, parentId: null },
+            { id: 8, name: "Parents", type: "savings", budget: 500, parentId: null },
+            
+            // Investments
+            { id: 6, name: "Investments", type: "investments", budget: 900, parentId: null },
+            { id: 15, name: "Emergency Fund", type: "investments", budget: 500, parentId: null },
+            
+            // Income
             { id: 12, name: "Salary", type: "income", budget: 9000, parentId: null }
         ];
 
@@ -775,7 +770,6 @@
         // DOM Elements
         const tabContents = document.querySelectorAll('.tab-content');
         const tabs = document.querySelectorAll('.tab');
-        const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
         const transactionsBody = document.getElementById('transactions-body');
         const categoriesBody = document.getElementById('categories-body');
         const budgetBody = document.getElementById('budget-body');
@@ -791,18 +785,13 @@
         const showAddCategoryBtn = document.getElementById('show-add-category');
         const cancelTransactionBtn = document.getElementById('cancel-transaction');
         const cancelCategoryBtn = document.getElementById('cancel-category');
-        const addTransactionBtn = document.getElementById('add-transaction-btn');
-        const addCategoryBtn = document.getElementById('add-category-btn');
-        const generateReportBtn = document.getElementById('generate-report-btn');
         const exportDataBtn = document.getElementById('export-data-btn');
         const importDataBtn = document.getElementById('import-data-btn');
-        const exportDataBtn2 = document.getElementById('export-data-btn-2');
-        const importDataBtn2 = document.getElementById('import-data-btn-2');
-        const printDataBtn = document.getElementById('print-data-btn');
         const backupFileInput = document.getElementById('backup-file');
+        const deleteAllTransactionsBtn = document.getElementById('delete-all-transactions');
 
         // Charts
-        let spendingChart, budgetChart, budgetPlanChart;
+        let spendingChart, budgetPlanChart;
 
         // Initialize the application
         function init() {
@@ -815,6 +804,12 @@
             populateCategorySelects();
             createCharts();
             calculateMonthlySpending();
+            
+            // Set today's date as default for transaction form
+            document.getElementById('transaction-date').valueAsDate = new Date();
+            
+            // Update financial summary
+            updateFinancialSummary();
         }
 
         // Set up event listeners
@@ -827,20 +822,6 @@
                 });
             });
 
-            // Mobile navigation
-            mobileNavItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    const tabId = item.getAttribute('data-tab');
-                    switchTab(tabId);
-                    
-                    // Update active state for mobile nav
-                    mobileNavItems.forEach(navItem => {
-                        navItem.classList.remove('active');
-                    });
-                    item.classList.add('active');
-                });
-            });
-
             // Form submissions
             transactionForm.addEventListener('submit', handleTransactionSubmit);
             categoryForm.addEventListener('submit', handleCategorySubmit);
@@ -850,22 +831,9 @@
             showAddCategoryBtn.addEventListener('click', () => showForm(addCategoryForm));
             cancelTransactionBtn.addEventListener('click', () => hideForm(addTransactionForm));
             cancelCategoryBtn.addEventListener('click', () => hideForm(addCategoryForm));
-            addTransactionBtn.addEventListener('click', () => {
-                switchTab('transactions');
-                setTimeout(() => showForm(addTransactionForm), 100);
-            });
-            addCategoryBtn.addEventListener('click', () => {
-                switchTab('categories');
-                setTimeout(() => showForm(addCategoryForm), 100);
-            });
-            generateReportBtn.addEventListener('click', generateMonthlyReport);
-            
-            // Data management buttons
             exportDataBtn.addEventListener('click', exportData);
             importDataBtn.addEventListener('click', () => backupFileInput.click());
-            exportDataBtn2.addEventListener('click', exportData);
-            importDataBtn2.addEventListener('click', () => backupFileInput.click());
-            printDataBtn.addEventListener('click', printReport);
+            deleteAllTransactionsBtn.addEventListener('click', deleteAllTransactions);
             
             // File input change
             backupFileInput.addEventListener('change', handleFileImport);
@@ -888,26 +856,20 @@
                     content.classList.remove('active');
                 }
             });
-
-            // Update active state for mobile nav
-            mobileNavItems.forEach(item => {
-                if (item.getAttribute('data-tab') === tabId) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
-                }
-            });
         }
 
         // Show form
         function showForm(form) {
-            form.style.display = 'block';
-            form.scrollIntoView({ behavior: 'smooth' });
+            form.classList.remove('hidden');
+            // Set today's date as default for transaction form
+            if (form.id === 'add-transaction-form') {
+                document.getElementById('transaction-date').valueAsDate = new Date();
+            }
         }
 
         // Hide form
         function hideForm(form) {
-            form.style.display = 'none';
+            form.classList.add('hidden');
             form.reset();
         }
 
@@ -922,9 +884,16 @@
                 const option1 = document.createElement('option');
                 option1.value = category.id;
                 option1.textContent = category.name;
+                if (category.parentId) {
+                    const parent = categories.find(c => c.id === category.parentId);
+                    if (parent) {
+                        option1.textContent = `${parent.name} → ${category.name}`;
+                    }
+                }
                 transactionCategorySelect.appendChild(option1);
 
-                if (category.type === 'expense') {
+                // For parent category select, only show main categories
+                if (!category.parentId) {
                     const option2 = document.createElement('option');
                     option2.value = category.id;
                     option2.textContent = category.name;
@@ -960,6 +929,7 @@
             updateAlerts();
             calculateMonthlySpending();
             createCharts();
+            updateFinancialSummary();
             hideForm(addTransactionForm);
             
             alert('Transaction added successfully!');
@@ -989,10 +959,49 @@
             populateCategorySelects();
             updateBudgetTable();
             updateBudgetStatus();
+            updateAlerts();
             createCharts();
+            updateFinancialSummary();
             hideForm(addCategoryForm);
             
             alert('Category added successfully!');
+        }
+
+        // Delete all transactions
+        function deleteAllTransactions() {
+            if (confirm('Are you sure you want to delete ALL transactions? This action cannot be undone.')) {
+                transactions = [];
+                renderTransactions();
+                updateBudgetTable();
+                updateBudgetStatus();
+                updateAlerts();
+                calculateMonthlySpending();
+                createCharts();
+                updateFinancialSummary();
+                
+                alert('All transactions have been deleted.');
+            }
+        }
+
+        // Update financial summary
+        function updateFinancialSummary() {
+            // Calculate monthly income from income categories
+            const monthlyIncome = categories
+                .filter(c => c.type === 'income')
+                .reduce((sum, category) => sum + category.budget, 0);
+            
+            // Calculate total expenses from expense categories
+            const totalExpenses = categories
+                .filter(c => c.type !== 'income')
+                .reduce((sum, category) => sum + category.budget, 0);
+            
+            // Calculate discretionary cash
+            const discretionaryCash = monthlyIncome - totalExpenses;
+            
+            // Update the DOM
+            document.getElementById('monthly-income').textContent = `S$${monthlyIncome.toFixed(2)}`;
+            document.getElementById('total-expenses').textContent = `S$${totalExpenses.toFixed(2)}`;
+            document.getElementById('discretionary-cash').textContent = `S$${discretionaryCash.toFixed(2)}`;
         }
 
         // Render transactions table
@@ -1000,7 +1009,7 @@
             transactionsBody.innerHTML = '';
             
             if (transactions.length === 0) {
-                transactionsBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No transactions found</td></tr>';
+                transactionsBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No transactions found</td></tr>';
                 return;
             }
             
@@ -1011,15 +1020,28 @@
                 const category = categories.find(c => c.id === transaction.categoryId);
                 const row = document.createElement('tr');
                 
+                let categoryName = category ? category.name : 'Unknown';
+                let categoryType = category ? category.type : 'unknown';
+                
+                // If it's a subcategory, show parent category too
+                if (category && category.parentId) {
+                    const parentCategory = categories.find(c => c.id === category.parentId);
+                    if (parentCategory) {
+                        categoryName = `${parentCategory.name} → ${category.name}`;
+                        categoryType = parentCategory.type;
+                    }
+                }
+                
                 row.innerHTML = `
                     <td>${formatDate(transaction.date)}</td>
-                    <td>${category ? category.name : 'Unknown'}</td>
-                    <td>${transaction.description}</td>
+                    <td>
+                        ${categoryName}
+                        <span class="badge badge-${categoryType} category-type">${categoryType}</span>
+                    </td>
                     <td class="${transaction.amount >= 0 ? 'positive' : 'negative'}">S$${Math.abs(transaction.amount).toFixed(2)}</td>
-                    <td>${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}</td>
                     <td>
                         <button class="btn btn-danger btn-sm" onclick="deleteTransaction(${transaction.id})">
-                            <i class="fas fa-trash"></i> Delete
+                            <i class="fas fa-trash"></i>
                         </button>
                     </td>
                 `;
@@ -1032,20 +1054,22 @@
         function renderCategories() {
             categoriesBody.innerHTML = '';
             
-            categories.forEach(category => {
-                const parentCategory = category.parentId ? 
-                    categories.find(c => c.id === category.parentId) : null;
-                
+            // First render main categories
+            categories.filter(c => !c.parentId).forEach(category => {
                 const row = document.createElement('tr');
                 
                 row.innerHTML = `
-                    <td>${category.name}</td>
-                    <td>${category.type.charAt(0).toUpperCase() + category.type.slice(1)}</td>
+                    <td>
+                        <div>${category.name}</div>
+                        <div class="subcategory">
+                            ${getSubcategories(category.id).map(sc => sc.name).join(', ')}
+                        </div>
+                    </td>
+                    <td><span class="badge badge-${category.type}">${category.type}</span></td>
                     <td>S$${category.budget.toFixed(2)}</td>
-                    <td>${parentCategory ? parentCategory.name : 'None'}</td>
                     <td>
                         <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id})">
-                            <i class="fas fa-trash"></i> Delete
+                            <i class="fas fa-trash"></i>
                         </button>
                     </td>
                 `;
@@ -1054,39 +1078,57 @@
             });
         }
 
+        // Helper function to get subcategories
+        function getSubcategories(parentId) {
+            return categories.filter(c => c.parentId === parentId);
+        }
+
         // Update budget table
         function updateBudgetTable() {
             budgetBody.innerHTML = '';
             
-            const expenseCategories = categories.filter(c => c.type === 'expense' && c.parentId === null);
+            const mainCategories = categories.filter(c => !c.parentId && c.type !== 'income');
             
-            expenseCategories.forEach(category => {
-                const categoryTransactions = transactions.filter(t => t.categoryId === category.id);
+            mainCategories.forEach(category => {
+                // Calculate total spent for this category and its subcategories
+                const categoryIds = [category.id, ...getSubcategories(category.id).map(sc => sc.id)];
+                const categoryTransactions = transactions.filter(t => categoryIds.includes(t.categoryId));
                 const totalSpent = categoryTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
-                const remaining = category.budget - totalSpent;
+                
+                // Calculate total budget for this category and its subcategories
+                const totalBudget = category.budget + getSubcategories(category.id).reduce((sum, sc) => sum + sc.budget, 0);
+                const remaining = totalBudget - totalSpent;
+                const percentage = (totalSpent / totalBudget) * 100;
                 
                 let status = '';
                 let statusClass = '';
                 
-                if (remaining >= category.budget * 0.2) {
+                if (remaining >= totalBudget * 0.2) {
                     status = 'On Track';
-                    statusClass = 'status-good';
+                    statusClass = 'badge-success';
                 } else if (remaining > 0) {
                     status = 'Warning';
-                    statusClass = 'status-warning';
+                    statusClass = 'badge-warning';
                 } else {
                     status = 'Over Budget';
-                    statusClass = 'status-bad';
+                    statusClass = 'badge-danger';
                 }
                 
                 const row = document.createElement('tr');
                 
                 row.innerHTML = `
-                    <td>${category.name}</td>
-                    <td>S$${category.budget.toFixed(2)}</td>
+                    <td>
+                        <div>${category.name}</div>
+                        <div class="subcategory">
+                            ${getSubcategories(category.id).map(sc => sc.name).join(', ')}
+                        </div>
+                        <div class="budget-progress">
+                            <div class="budget-progress-bar progress-${category.type}" style="width: ${Math.min(percentage, 100)}%"></div>
+                        </div>
+                    </td>
+                    <td>S$${totalBudget.toFixed(2)}</td>
                     <td>S$${totalSpent.toFixed(2)}</td>
-                    <td class="${remaining >= 0 ? 'positive' : 'negative'}">S$${remaining.toFixed(2)}</td>
-                    <td><span class="status-indicator ${statusClass}"></span>${status}</td>
+                    <td><span class="badge ${statusClass}">${status}</span></td>
                 `;
                 
                 budgetBody.appendChild(row);
@@ -1097,12 +1139,17 @@
         function updateBudgetStatus() {
             budgetStatus.innerHTML = '';
             
-            const expenseCategories = categories.filter(c => c.type === 'expense' && c.parentId === null);
+            const mainCategories = categories.filter(c => !c.parentId && c.type !== 'income');
             
-            expenseCategories.forEach(category => {
-                const categoryTransactions = transactions.filter(t => t.categoryId === category.id);
+            mainCategories.forEach(category => {
+                // Calculate total spent for this category and its subcategories
+                const categoryIds = [category.id, ...getSubcategories(category.id).map(sc => sc.id)];
+                const categoryTransactions = transactions.filter(t => categoryIds.includes(t.categoryId));
                 const totalSpent = categoryTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
-                const percentage = (totalSpent / category.budget) * 100;
+                
+                // Calculate total budget for this category and its subcategories
+                const totalBudget = category.budget + getSubcategories(category.id).reduce((sum, sc) => sum + sc.budget, 0);
+                const percentage = (totalSpent / totalBudget) * 100;
                 
                 const statusItem = document.createElement('div');
                 statusItem.className = 'summary-item';
@@ -1130,14 +1177,19 @@
             alertsContainer.innerHTML = '';
             
             // Check for over-budget categories
-            const expenseCategories = categories.filter(c => c.type === 'expense' && c.parentId === null);
+            const mainCategories = categories.filter(c => !c.parentId && c.type !== 'income');
             let overBudgetCategories = [];
             
-            expenseCategories.forEach(category => {
-                const categoryTransactions = transactions.filter(t => t.categoryId === category.id);
+            mainCategories.forEach(category => {
+                // Calculate total spent for this category and its subcategories
+                const categoryIds = [category.id, ...getSubcategories(category.id).map(sc => sc.id)];
+                const categoryTransactions = transactions.filter(t => categoryIds.includes(t.categoryId));
                 const totalSpent = categoryTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
                 
-                if (totalSpent > category.budget) {
+                // Calculate total budget for this category and its subcategories
+                const totalBudget = category.budget + getSubcategories(category.id).reduce((sum, sc) => sum + sc.budget, 0);
+                
+                if (totalSpent > totalBudget) {
                     overBudgetCategories.push(category.name);
                 }
             });
@@ -1146,24 +1198,39 @@
                 const alert = document.createElement('div');
                 alert.className = 'alert alert-warning';
                 alert.innerHTML = `
-                    <strong>Budget Alert!</strong> You have exceeded your budget in the following categories: 
+                    <strong>Budget Alert!</strong> You have exceeded your budget in: 
                     ${overBudgetCategories.join(', ')}.
                 `;
                 alertsContainer.appendChild(alert);
             }
             
-            // Check discretionary buffer
-            const bufferCategory = categories.find(c => c.name === "Discretionary Buffer");
-            if (bufferCategory) {
-                const bufferTransactions = transactions.filter(t => t.categoryId === bufferCategory.id);
-                const bufferSpent = bufferTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+            // Check emergency fund status
+            const emergencyFundCategory = categories.find(c => c.name === "Emergency Fund");
+            if (emergencyFundCategory) {
+                const emergencyFundTransactions = transactions.filter(t => t.categoryId === emergencyFundCategory.id);
+                const emergencyFundSaved = emergencyFundTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
                 
-                if (bufferSpent > bufferCategory.budget * 0.8) {
+                // Calculate total monthly expenses dynamically
+                const totalMonthlyExpenses = categories
+                    .filter(c => c.type !== 'income')
+                    .reduce((sum, category) => sum + category.budget, 0);
+                
+                const targetEmergencyFund = 3 * totalMonthlyExpenses; // 3 months of expenses
+                
+                if (emergencyFundSaved < targetEmergencyFund) {
+                    const percentage = (emergencyFundSaved / targetEmergencyFund) * 100;
                     const alert = document.createElement('div');
                     alert.className = 'alert alert-warning';
                     alert.innerHTML = `
-                        <strong>Buffer Alert!</strong> You have used ${((bufferSpent / bufferCategory.budget) * 100).toFixed(1)}% 
-                        of your discretionary buffer. Consider reducing non-essential spending.
+                        <strong>Emergency Fund Progress:</strong> You have saved S$${emergencyFundSaved.toFixed(2)} 
+                        (${percentage.toFixed(1)}%) of your recommended S$${targetEmergencyFund.toFixed(2)} emergency fund.
+                    `;
+                    alertsContainer.appendChild(alert);
+                } else {
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success';
+                    alert.innerHTML = `
+                        <strong>Emergency Fund Complete!</strong> You have reached your recommended emergency fund target.
                     `;
                     alertsContainer.appendChild(alert);
                 }
@@ -1174,7 +1241,7 @@
                 const alert = document.createElement('div');
                 alert.className = 'alert alert-success';
                 alert.innerHTML = `
-                    <strong>All Good!</strong> Your finances are on track. Keep up the good work!
+                    <strong>All Good!</strong> Your finances are on track.
                 `;
                 alertsContainer.appendChild(alert);
             }
@@ -1195,7 +1262,6 @@
             const totalSpent = monthTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
             
             document.getElementById('month-spending').textContent = `S$${totalSpent.toFixed(2)}`;
-            document.getElementById('remaining-budget').textContent = `S$${(300 - totalSpent).toFixed(2)}`;
         }
 
         // Create charts
@@ -1207,12 +1273,21 @@
                 spendingChart.destroy();
             }
             
-            const expenseCategories = categories.filter(c => c.type === 'expense' && c.parentId === null);
-            const categoryNames = expenseCategories.map(c => c.name);
-            const categorySpending = expenseCategories.map(category => {
-                const categoryTransactions = transactions.filter(t => t.categoryId === category.id);
+            const mainCategories = categories.filter(c => !c.parentId && c.type !== 'income');
+            const categoryNames = mainCategories.map(c => c.name);
+            const categorySpending = mainCategories.map(category => {
+                const categoryIds = [category.id, ...getSubcategories(category.id).map(sc => sc.id)];
+                const categoryTransactions = transactions.filter(t => categoryIds.includes(t.categoryId));
                 return categoryTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
             });
+            
+            const categoryColors = {
+                'spending': '#e74c3c',
+                'savings': '#3498db',
+                'investments': '#2ecc71'
+            };
+            
+            const backgroundColors = mainCategories.map(category => categoryColors[category.type]);
             
             spendingChart = new Chart(spendingCtx, {
                 type: 'doughnut',
@@ -1220,11 +1295,7 @@
                     labels: categoryNames,
                     datasets: [{
                         data: categorySpending,
-                        backgroundColor: [
-                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
-                            '#9966FF', '#FF9F40', '#8AC926', '#1982C4',
-                            '#6A4C93', '#F15BB5', '#00BBF9', '#00F5D4'
-                        ]
+                        backgroundColor: backgroundColors
                     }]
                 },
                 options: {
@@ -1236,54 +1307,13 @@
                             text: 'Spending by Category'
                         },
                         legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-            
-            // Budget vs Actual chart
-            const budgetCtx = document.getElementById('budgetChart').getContext('2d');
-            
-            if (budgetChart) {
-                budgetChart.destroy();
-            }
-            
-            const budgetData = expenseCategories.map(category => category.budget);
-            const actualData = expenseCategories.map(category => {
-                const categoryTransactions = transactions.filter(t => t.categoryId === category.id);
-                return categoryTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
-            });
-            
-            budgetChart = new Chart(budgetCtx, {
-                type: 'bar',
-                data: {
-                    labels: categoryNames,
-                    datasets: [
-                        {
-                            label: 'Budget',
-                            data: budgetData,
-                            backgroundColor: '#36A2EB'
-                        },
-                        {
-                            label: 'Actual',
-                            data: actualData,
-                            backgroundColor: '#FF6384'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Budget vs Actual Spending'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 10,
+                                font: {
+                                    size: 9
+                                }
+                            }
                         }
                     }
                 }
@@ -1296,21 +1326,22 @@
                 budgetPlanChart.destroy();
             }
             
-            const totalBudget = expenseCategories.reduce((sum, c) => sum + c.budget, 0);
+            const totalBudget = mainCategories.reduce((sum, c) => {
+                return sum + c.budget + getSubcategories(c.id).reduce((subSum, sc) => subSum + sc.budget, 0);
+            }, 0);
+            
             const income = categories.find(c => c.type === 'income').budget;
             const savings = income - totalBudget;
             
             budgetPlanChart = new Chart(budgetPlanCtx, {
                 type: 'pie',
                 data: {
-                    labels: [...expenseCategories.map(c => c.name), 'Savings'],
+                    labels: [...mainCategories.map(c => c.name), 'Remaining'],
                     datasets: [{
-                        data: [...expenseCategories.map(c => c.budget), savings],
-                        backgroundColor: [
-                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
-                            '#9966FF', '#FF9F40', '#8AC926', '#1982C4',
-                            '#6A4C93', '#F15BB5', '#00BBF9', '#00F5D4'
-                        ]
+                        data: [...mainCategories.map(c => {
+                            return c.budget + getSubcategories(c.id).reduce((sum, sc) => sum + sc.budget, 0);
+                        }), savings],
+                        backgroundColor: [...backgroundColors, '#95a5a6']
                     }]
                 },
                 options: {
@@ -1322,7 +1353,13 @@
                             text: 'Budget Allocation'
                         },
                         legend: {
-                            position: 'bottom'
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 10,
+                                font: {
+                                    size: 9
+                                }
+                            }
                         }
                     }
                 }
@@ -1343,7 +1380,7 @@
             const url = URL.createObjectURL(dataBlob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `singapore-financial-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.download = `expense-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1379,6 +1416,7 @@
                             populateCategorySelects();
                             createCharts();
                             calculateMonthlySpending();
+                            updateFinancialSummary();
                             
                             alert('Data imported successfully!');
                         }
@@ -1393,11 +1431,6 @@
             reader.readAsText(file);
         }
 
-        // Print report
-        function printReport() {
-            window.print();
-        }
-
         // Delete transaction
         function deleteTransaction(id) {
             if (confirm('Are you sure you want to delete this transaction?')) {
@@ -1408,6 +1441,7 @@
                 updateAlerts();
                 calculateMonthlySpending();
                 createCharts();
+                updateFinancialSummary();
             }
         }
 
@@ -1418,7 +1452,7 @@
             // Check if category has transactions
             const categoryTransactions = transactions.filter(t => t.categoryId === id);
             if (categoryTransactions.length > 0) {
-                alert('Cannot delete category with existing transactions. Please reassign or delete those transactions first.');
+                alert('Cannot delete category with existing transactions. Please delete those transactions first.');
                 return;
             }
             
@@ -1435,48 +1469,15 @@
                 populateCategorySelects();
                 updateBudgetTable();
                 updateBudgetStatus();
+                updateAlerts();
                 createCharts();
+                updateFinancialSummary();
             }
-        }
-
-        // Generate monthly report
-        function generateMonthlyReport() {
-            const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
-            const totalIncome = transactions
-                .filter(t => t.type === 'income')
-                .reduce((sum, t) => sum + t.amount, 0);
-                
-            const totalExpenses = transactions
-                .filter(t => t.type === 'expense')
-                .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-                
-            const netSavings = totalIncome - totalExpenses;
-            
-            alert(`Monthly Financial Report (${currentMonth})\n\n` +
-                  `Total Income: S$${totalIncome.toFixed(2)}\n` +
-                  `Total Expenses: S$${totalExpenses.toFixed(2)}\n` +
-                  `Net Savings: S$${netSavings.toFixed(2)}\n\n` +
-                  `A detailed report has been generated in the console.`);
-                  
-            // Log detailed report to console
-            console.group(`Monthly Financial Report - ${currentMonth}`);
-            console.log(`Total Income: S$${totalIncome.toFixed(2)}`);
-            console.log(`Total Expenses: S$${totalExpenses.toFixed(2)}`);
-            console.log(`Net Savings: S$${netSavings.toFixed(2)}`);
-            console.log('--- Category Breakdown ---');
-            
-            categories.filter(c => c.type === 'expense').forEach(category => {
-                const categoryTransactions = transactions.filter(t => t.categoryId === category.id);
-                const categoryTotal = categoryTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
-                console.log(`${category.name}: S$${categoryTotal.toFixed(2)} (${((categoryTotal / totalExpenses) * 100).toFixed(1)}%)`);
-            });
-            
-            console.groupEnd();
         }
 
         // Format date for display
         function formatDate(dateString) {
-            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            const options = { month: 'short', day: 'numeric' };
             return new Date(dateString).toLocaleDateString(undefined, options);
         }
 
